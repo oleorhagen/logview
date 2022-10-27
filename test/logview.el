@@ -309,6 +309,44 @@
     (should (equal (logview--locate-current-entry entry nil (logview--entry-level entry)) 7))))
 
 
+;; Mender submode
+(ert-deftest logview-test-mender-submode-recognition ()
+  (logview--test-with-file "mender/1.log"
+    (should (equal logview--submode-name "Mender"))))
+
+;; (logview--test-with-file "mender/1.log"
+;;   (should (equal logview--submode-name "Mender")))
+
+;; (ert-deftest logview-test-mender-submode-find-entries ()
+;;   (logview--test-with-file "mender/1.log"
+;;     (logview--locate-current-entry entry start
+;;       (should (and entry (equal start 1))))))
+
+;; (ert-deftest logview-test-mender-submode-match-a-message ()
+;;   (logview--test-with-file "mender/1.log"
+;;     (logview-go-to-message-beginning)
+;;     (should (looking-at "Emergency message.$"))))
+
+;; (ert-deftest logview-test-mender-submode-match-all-levels ()
+;;   (logview--test-with-file "mender/1.log"
+;;     (should (equal (logview--locate-current-entry entry nil (logview--entry-level entry)) 0))
+;;     (logview-next-entry)
+;;     (should (equal (logview--locate-current-entry entry nil (logview--entry-level entry)) 1))
+;;     (logview-next-entry)
+;;     (should (equal (logview--locate-current-entry entry nil (logview--entry-level entry)) 2))
+;;     (logview-next-entry)
+;;     (should (equal (logview--locate-current-entry entry nil (logview--entry-level entry)) 3))
+;;     (logview-next-entry)
+;;     (should (equal (logview--locate-current-entry entry nil (logview--entry-level entry)) 4))
+;;     (logview-next-entry)
+;;     (should (equal (logview--locate-current-entry entry nil (logview--entry-level entry)) 5))
+;;     (logview-next-entry)
+;;     (should (equal (logview--locate-current-entry entry nil (logview--entry-level entry)) 6))
+;;     (logview-next-entry)
+;;     (should (equal (logview--locate-current-entry entry nil (logview--entry-level entry)) 7))))
+
+
+
 ;; This is a huge test, but I find it easier to test various combinations this way.
 ;;
 ;; Expected results of `logview-*-section-any-thread' may seem wrong, but remember that

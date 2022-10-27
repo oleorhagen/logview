@@ -74,13 +74,16 @@
   '(("SLF4J" . ((format  . "TIMESTAMP [THREAD] LEVEL NAME -")
                 (levels  . "SLF4J")
                 (aliases . ("Log4j" "Log4j2" "Logback"))))
+    ("Mender"  . ((format  . "TIMESTAMP THREAD NAME: IGNORED")
+                  (levels . "RFC 5424 lowercase")))
     ;; We misuse thread as a field for hostname.
     ("UNIX"  . ((format  . "TIMESTAMP THREAD NAME:")))
     ("Apache Error Log"  . ((format . "[TIMESTAMP] [NAME:LEVEL] [THREAD] MESSAGE")
                            (levels . "RFC 5424 lowercase")))
     ("Monolog" . ((format  . "[TIMESTAMP] NAME[THREAD].LEVEL: MESSAGE")
                   (levels  . "RFC 5424")
-                  (aliases . ("PHP" "PSR-3")))))
+                  (aliases . ("PHP" "PSR-3"))))
+    )
   "Alist of standard submodes.
 This value is used as the fallback for customizable
 `logview-additional-submodes'.")

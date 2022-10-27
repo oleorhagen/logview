@@ -1,0 +1,7 @@
+Oct 21 11:17:23 qemux86-64 systemd[1]: Started Mender OTA update service.
+Oct 21 11:17:23 qemux86-64 mender[259]: time="2022-10-21T11:17:23Z" level=info msg="Loaded configuration file: /var/lib/mender/mender.conf"
+Oct 21 11:17:23 qemux86-64 mender[259]: time="2022-10-21T11:17:23Z" level=error msg="Loaded configuration file: /etc/mender/mender.conf"
+Oct 21 11:17:23 qemux86-64 mender[259]: time="2022-10-21T11:17:23Z" level=warning msg="Loaded configuration file: /var/lib/mender/mender.conf"
+Oct 21 11:17:23 qemux86-64 mender[259]: time="2022-10-21T11:17:23Z" level=debug msg="Loaded configuration file: /etc/mender/mender.conf"
+Oct 21 11:17:24 qemux86-64 mender[259]: time="2022-10-21T11:17:24Z" level=alert msg="Mender running on partition: /dev/sda2"
+Oct 21 11:17:24 qemux86-64 mender[259]: time="2022-10-21T11:17:24Z" level=trace msg="Mender running on partition: /dev/sda2"
