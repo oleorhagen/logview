@@ -14,3 +14,9 @@
 
 * Context when filtering (like grep -C): optionally show N entries
   before/after each that matches filter.
+
+* Keep a time context, so that multiple windows can be synced and traversed
+  through using the same time.
+
+  + Stretch goal would be to add/subtract timezones, so that windows not in the
+    same timezone would still be able to be synced for review.
