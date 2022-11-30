@@ -657,66 +657,62 @@ this face is used."
 ;; 3.
 ;;
 
-;; TODO - Any movement needs to set this value
-(defvar-local logview--current-log-time nil
+;; INPROGRESS - Any movement needs to set this value
+;; TODO - rename to logview-timesync--
+(defvar logview--current-log-time nil
   "Value of logview-current-log-time is set per buffer, and used to sync the times with one master window in every window.")
 
-(defun logview-timesync--get-buffers ()
-  "Return a list of the buffers to sync (for now - just the logview-mode buffers)"
+
+(defun logview-timesync--get-visible-logview-buffers()
+  (let (buffers)
+    (walk-windows (lambda (window)
+                    (when (logview-timesync--is-log-buffer-p (window-buffer window))
+                      (push (window-buffer window) buffers))))
+    buffers))
+
+(defun logview-timesync--sync-buffers ()
   (interactive)
   ;; Iterate over all the buffers and set the time to the given time
-  (let ((entry-start-list (test-get-current-entry)))
+  (when logview--current-log-time
+    (message "Current log time: %s" logview--current-log-time)
     (cl-mapcar (lambda (buffer)
-                        (with-current-buffer buffer
-                          ;; now -- navigate to the given entry time
-                          (logview-timesync-set-current-buffer-time (car entry-start-list) (cadr entry-start-list)))
-                        ) (buffer-list))))
+                 (message "Syncing buffer: %s" (buffer-name buffer))
+                 (with-current-buffer buffer
+                   ;; now -- navigate to the given entry time
+                   (logview-timesync-matching-entry-time
+                    logview--current-log-time)))
+               (logview-timesync--get-visible-logview-buffers))))
 
-(defun test-get-current-entry ()
-  (interactive)
-  (logview--std-temporarily-widening
-    (logview--locate-current-entry entry start
-      (message "entry: %s" entry)
-      (list entry start))))
+(defun logview-timesync--is-log-buffer-p (buffer)
+  "Filter out the buffers which are not logview buffers (and the current buffer)"
+  (string-match ".*\.log$" (buffer-name buffer)))
 
-;; TODO - Rename to logview-timesync (same name as the submode)
-(defun logview-timesync-set-current-buffer-time (entry start)
-  "Sets the 'logview--current-log-time' for the current buffer
-Meaning, go to the timestamp closest in time (before?) the given time"
-  (message "Dummy set current buffer time to 'entry'")
-  ;; How to do this?
+(defun logview-timesync-matching-entry-time (time)
+  "Move to the given entry time in the buffer"
+  (message "logview-timesync-matching-entry-time")
+  (let ((n-entries-forward (logview-timesync--traverse-entries-until-time time)))
+    ;; Move to the given entry
+    (logview-next-entry n-entries-forward)))
 
-  ;; If the goto-time is larger than this time -> go forward in the buffer
-  ;;
-  ;; Else -> Go backwards
-
-  ;; TODO - If no exact time match, we should highlight the two entries
-  ;; surrounding the given time
-
-  ;; Iterate every entry, until the difference between this and the last entry starts increasing
-
-  ;; (logview-get-entries)
-
-  ;; Then we need to move to the minimum value in the array
-
-  ;;; Experiment from here on out
-
-  (message "Entry: %s" entry)
-  (message "Start: %s" start)
-  (message "Entry time: %s" (logview--entry-timestamp entry start))
-
-  ;; TODO - Get the time of the current entry
-  ;; (let ((wanted-time (logview--entry-timestamp entry)))
-  ;;   ;; Get the minimum time difference between entry and every element
-  ;;   (min (cl-mapcar (lambda (next-entry)
-  ;;                                 (- (logview--entry-timestamp entry) (logview--entry-timestamp next-entry)))))
-  ;;   ))
-  )
+(defun logview-timesync--traverse-entries-until-time (current-time)
+  "Traverse the given buffer entries until the given time is found and return the number of entries 'N' (or rather the entry distance to the given time)"
+  (message "logview-timesync--traverse-entries-until-time")
+    ;; Get the minimum time difference between entry and every element
+  (let ((timelist (cl-mapcar (lambda (next-entry)
+                               (message "Next entry: %s" next-entry)
+                               (- current-time (logview--entry-timestamp next-entry nil)))
+                             (logview-timesync-traverse-entries-forward)
+                             )))
+    (message "logview-timesync--traverse-entries-until-time: timelist: %s" timelist)
+    (message "Min element: %s" (apply #'min timelist))
+    (message "Min element position: %d" (seq-position timelist (apply #'min timelist)))
+    (seq-position timelist (apply #'min timelist))))
 
 (defun logview-timesync-traverse-entries-forward ()
   "Traverse all log entries forward from the current
 entry (skipping the current) and return a list of the entries"
   (interactive)
+  (message "logview-timesync-traverse-entries-forward")
   (logview--assert 'timestamp)
   (let ((timelist (list)))
        (logview--std-temporarily-widening
@@ -725,6 +721,7 @@ entry (skipping the current) and return a list of the entries"
                                              ;; Collect the element to a list
                                              (add-to-list 'timelist entry t))
                                            nil nil t))
+       (message "Timelist: %s" timelist)
        timelist))
 
 ;; TODO - A list of buffers to be synced on time
@@ -1318,6 +1315,7 @@ the function will have significantly different effect."
                    ;; (logview--entry-timestamp entry start)
                    (logview--assert 'timestamp)
                    (message "Setting the timestamp...")
+                   (message "entry: %s, start: %s" entry start)
                    (setq logview--current-log-time (logview--entry-timestamp entry start))
                    (when logview--current-log-time
                      (message "Yay -- Set the current log time!"))
@@ -3244,11 +3242,6 @@ something similar first."
       (unless position
         (user-error "Unable to locate any log entries")))))
 
-
-(logview--iterate-entries-forward position callback &optional only-visible validator skip-current)
-
-(logview--iterate-entries-forward position (lambda (entry entry-beginning)
-) &optional nil nil t)
 
 (defun logview--iterate-entries-forward (position callback &optional only-visible validator skip-current)
   "Invoke CALLBACK for successive valid log entries forward.
