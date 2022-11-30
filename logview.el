@@ -675,13 +675,12 @@ this face is used."
   ;; Iterate over all the buffers and set the time to the given time
   (when logview--current-log-time
     (message "Current log time: %s" logview--current-log-time)
-    (cl-mapcar (lambda (buffer)
-                 (message "Syncing buffer: %s" (buffer-name buffer))
-                 (with-current-buffer buffer
-                   ;; now -- navigate to the given entry time
-                   (logview-timesync-matching-entry-time
-                    logview--current-log-time)))
-               (logview-timesync--get-visible-logview-buffers))))
+    (walk-windows (lambda (window)
+                    (message "Moving to point min in window:%s " window)
+                    (with-selected-window window
+                      ;; TODO - Go to the selected point in window
+                      ;; TODO - Filter the window
+                      (goto-char (point-min)))))))
 
 (defun logview-timesync--is-log-buffer-p (buffer)
   "Filter out the buffers which are not logview buffers (and the current buffer)"
@@ -689,8 +688,9 @@ this face is used."
 
 (defun logview-timesync-matching-entry-time (time)
   "Move to the given entry time in the buffer"
+  (interactive)
   (message "logview-timesync-matching-entry-time")
-  (let ((n-entries-forward (logview-timesync--traverse-entries-until-time time)))
+  (let ((n-entries-forward 2))
     ;; Move to the given entry
     (logview-next-entry n-entries-forward)))
 
