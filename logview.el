@@ -668,12 +668,24 @@ this face is used."
   (logview-next-entry n)
   (logview-timesync--sync-buffers))
 
+
+(defun logview-timesync--move-entry-backward (&optional n)
+  "Wraps logview-next-entry and calls sync buffers afterwards"
+  (interactive)
+  (logview-previous-entry n)
+  (logview-timesync--sync-buffers-reverse))
+
 (defun logview-timesync--initialize-keymap ()
   "Overlay the logview keymap with the given"
   (interactive)
-  (define-key logview-mode-map (kbd "n") 'logview-timesync--sync-buffers))
+  (define-key logview-mode-map (kbd "n") 'logview-timesync--move-entry-forward)
+  (define-key logview-mode-map (kbd "p") 'logview-timesync--move-entry-backward))
 
-(defun logview-timesync--sync-buffers ()
+(defun logview-timesync--sync-buffers-reverse ()
+  (interactive)
+  (logview-timesync--sync-buffers -1))
+
+(defun logview-timesync--sync-buffers (&optional direction)
   (interactive)
   ;; Require timestamps for this operation (TODO - Do for all windows synced)
   (logview--assert 'timestamp)
@@ -693,7 +705,7 @@ this face is used."
                           ;; TODO - Get the time from the current window
                           ;; TODO - Go to the selected point in window
                           ;; TODO - It stops scrolling when one window reaches the bottom
-                          (logview-next-entry)
+                          (logview-next-entry direction)
                           ;; (logview-timesync-matching-entry-time 0)
                           ;; Blink the line
                           (logview--maybe-pulse-current-entry)
