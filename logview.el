@@ -662,28 +662,39 @@ this face is used."
 (defvar logview--current-log-time nil
   "Value of logview-current-log-time is set per buffer, and used to sync the times with one master window in every window.")
 
+(defun logview-timesync--move-entry-forward (&optional n)
+  "Wraps logview-next-entry and calls sync buffers afterwards"
+  (interactive)
+  (logview-next-entry n)
+  (logview-timesync--sync-buffers))
 
-(defun logview-timesync--get-visible-logview-buffers()
-  (let (buffers)
-    (walk-windows (lambda (window)
-                    (when (logview-timesync--is-log-buffer-p (window-buffer window))
-                      (push (window-buffer window) buffers))))
-    buffers))
+(defun logview-timesync--initialize-keymap ()
+  "Overlay the logview keymap with the given"
+  (interactive)
+  (define-key logview-mode-map (kbd "n") 'logview-timesync--sync-buffers))
 
 (defun logview-timesync--sync-buffers ()
   (interactive)
+  ;; Require timestamps for this operation (TODO - Do for all windows synced)
+  (logview--assert 'timestamp)
   ;; Iterate over all the buffers and set the time to the given time
   (message "Current log time: %s" logview--current-log-time)
-  (let ((current-buffer-name (buffer-name (current-buffer))))
+  (let ((current-buffer-name (buffer-name (current-buffer)))
+        (current-buffer-time (logview--locate-current-entry entry start
+                               (logview--entry-timestamp entry start))))
     (message "Current buffer: %s" current-buffer-name)
+    (message "Current buffer time: %s" current-buffer-time)
     (walk-windows (lambda (window)
-                    (message "Moving to point min in window:%s " window)
                     (unless (string= current-buffer-name (buffer-name (window-buffer window)))
                       (when (logview-timesync--is-logview-window-p window)
 
+                        (message "Moving one line down in window:%s " window)
                         (with-selected-window window
+                          ;; TODO - Get the time from the current window
                           ;; TODO - Go to the selected point in window
-                          (logview-timesync-matching-entry-time 0)
+                          ;; TODO - It stops scrolling when one window reaches the bottom
+                          (logview-next-entry)
+                          ;; (logview-timesync-matching-entry-time 0)
                           ;; Blink the line
                           (logview--maybe-pulse-current-entry)
                           )
@@ -696,7 +707,7 @@ this face is used."
   "Move to the given entry time in the buffer"
   (interactive)
   (message "logview-timesync-matching-entry-time")
-  (let ((n-entries-forward 2))
+  (let ((n-entries-forward 1))
     ;; Move to the given entry
     (logview-next-entry n-entries-forward)))
 
@@ -1322,11 +1333,10 @@ the function will have significantly different effect."
                    (logview--assert 'timestamp)
                    (message "Setting the timestamp...")
                    (message "entry: %s, start: %s" entry start)
-                   (setq logview--current-log-time (logview--entry-timestamp entry start))
+                   ;; (logview-timesync--sync-buffers)
                    (when logview--current-log-time
                      (message "Yay -- Set the current log time!"))
                   ))
-
                ))))
 
 (defun logview-previous-entry (&optional n)
