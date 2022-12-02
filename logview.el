@@ -673,18 +673,24 @@ this face is used."
 (defun logview-timesync--sync-buffers ()
   (interactive)
   ;; Iterate over all the buffers and set the time to the given time
-  (when logview--current-log-time
-    (message "Current log time: %s" logview--current-log-time)
+  (message "Current log time: %s" logview--current-log-time)
+  (let ((current-buffer-name (buffer-name (current-buffer))))
+    (message "Current buffer: %s" current-buffer-name)
     (walk-windows (lambda (window)
                     (message "Moving to point min in window:%s " window)
-                    (with-selected-window window
-                      ;; TODO - Go to the selected point in window
-                      ;; TODO - Filter the window
-                      (goto-char (point-min)))))))
+                    (unless (string= current-buffer-name (buffer-name (window-buffer window)))
+                      (when (logview-timesync--is-logview-window-p window)
 
-(defun logview-timesync--is-log-buffer-p (buffer)
-  "Filter out the buffers which are not logview buffers (and the current buffer)"
-  (string-match ".*\.log$" (buffer-name buffer)))
+                        (with-selected-window window
+                          ;; TODO - Go to the selected point in window
+                          (logview-timesync-matching-entry-time 0)
+                          ;; Blink the line
+                          (logview--maybe-pulse-current-entry)
+                          )
+                        ))))))
+
+(defun logview-timesync--is-logview-window-p (window)
+  (string-match ".*\.log$" (buffer-name (window-buffer window))))
 
 (defun logview-timesync-matching-entry-time (time)
   "Move to the given entry time in the buffer"
