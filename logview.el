@@ -646,12 +646,11 @@ this face is used."
 
 
 
-;; Log-buffer-sync (submode?)
+;; Log-buffer-sync (minor-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; TODO - Create the time-sync functionality
-
 
 ;; How to handle the timelist traversal ?
 ;;
@@ -662,7 +661,6 @@ this face is used."
 
 (define-minor-mode logview-timesync-mode
   "Syncs the point in all visible logview buffers based on the time in the current buffer"
-
   :lighter " [Sync]"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "n") 'logview-timesync--move-entry-forward)
@@ -692,12 +690,6 @@ this face is used."
   (logview-previous-entry n)
   (logview-timesync--sync-buffers-reverse))
 
-(defun logview-timesync--initialize-keymap ()
-  "Overlay the logview keymap with the given"
-  (interactive)
-  (define-key logview-mode-map (kbd "n") 'logview-timesync--move-entry-forward)
-  (define-key logview-mode-map (kbd "p") 'logview-timesync--move-entry-backward))
-
 (defun logview-timesync--sync-buffers-reverse ()
   (interactive)
   (logview-timesync--sync-buffers -1))
@@ -718,7 +710,7 @@ this face is used."
 
                         (message "Moving one line down in window:%s " window)
                         (with-selected-window window
-                          ;; TODO - Get the time from the current window
+                          ;; INPROGRESS - Get the time from the current window
                           ;; TODO - Go to the selected point in window
                           ;; TODO - It stops scrolling when one window reaches the bottom
                           (logview-next-entry direction)
@@ -729,7 +721,7 @@ this face is used."
                         ))))))
 
 (defun logview-timesync--is-logview-window-p (window)
-  (string-match ".*\.log$" (buffer-name (window-buffer window))))
+  (string-match ".*\\.log\\(<.*>\\)?" (buffer-name (window-buffer window))))
 
 (defun logview-timesync-matching-entry-time (time)
   "Move to the given entry time in the buffer"
