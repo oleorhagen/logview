@@ -651,6 +651,8 @@ this face is used."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; TODO - Create the time-sync functionality
+;;
+;;; Do this individually. First just sync on the current line
 
 ;; How to handle the timelist traversal ?
 ;;
@@ -743,6 +745,40 @@ this face is used."
     (message "Min element: %s" (apply #'min timelist))
     (message "Min element position: %d" (seq-position timelist (apply #'min timelist)))
     (seq-position timelist (apply #'min timelist))))
+
+
+(defun logview-timesync--next-timematch-entry ()
+
+  "
+Iteration starts at the entry around POSITION (or the next, if
+                                                    SKIP-CURRENT is non-nil) and continues forward until CALLBACK
+                                                    returns nil or end of buffer is reached.  This function does not
+                                                    alter the point, nor is it affected in any way by CALLBACK or
+                                                    VALIDATOR altering it.
+"
+  (interactive)
+  (let ((timestamp (logview--locate-current-entry entry start
+                     (logview--entry-timestamp entry start)))
+        (index 0)
+        (goto-line 0))
+    (logview--std-temporarily-widening
+      (logview--iterate-entries-forward (point)
+                                        (lambda (entry entry-beginning)
+;;                                           ;; Collect the element to a list
+;;                                           (message "Entry: %s" entry)
+                                          (message "Entry timestamp: %s" (logview--entry-timestamp entry entry-beginning))
+;;                                           (message "Foobar")
+                                          (message "Diff: %s" (abs (- timestamp (logview--entry-timestamp entry entry-beginning))))
+                                          (if (= (abs (- timestamp (logview--entry-timestamp entry entry-beginning))) 0)
+                                              (progn (setq goto-line index)
+                                                     (message "Yay")
+                                                     nil)
+                                            (progn (setq index (+ index 1))
+                                                   (message "Noo")
+                                                   t)))
+                                        nil nil t))
+    (message "goto-line: %d" goto-line)
+    goto-line))
 
 (defun logview-timesync-traverse-entries-forward ()
   "Traverse all log entries forward from the current
@@ -1352,7 +1388,7 @@ the function will have significantly different effect."
                    (logview--assert 'timestamp)
                    (message "Setting the timestamp...")
                    (message "entry: %s, start: %s" entry start)
-                   ;; (logview-timesync--sync-buffers)
+                   (message "Entry timestamp: %s" (logview--entry-timestamp entry start))
                   ))
                ))))
 
