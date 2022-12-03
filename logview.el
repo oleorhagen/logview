@@ -732,22 +732,8 @@ this face is used."
     ;; Move to the given entry
     (logview-next-entry n-entries-forward)))
 
-(defun logview-timesync--traverse-entries-until-time (current-time)
-  "Traverse the given buffer entries until the given time is found and return the number of entries 'N' (or rather the entry distance to the given time)"
-  (message "logview-timesync--traverse-entries-until-time")
-    ;; Get the minimum time difference between entry and every element
-  (let ((timelist (cl-mapcar (lambda (next-entry)
-                               (message "Next entry: %s" next-entry)
-                               (- current-time (logview--entry-timestamp next-entry nil)))
-                             (logview-timesync-traverse-entries-forward)
-                             )))
-    (message "logview-timesync--traverse-entries-until-time: timelist: %s" timelist)
-    (message "Min element: %s" (apply #'min timelist))
-    (message "Min element position: %d" (seq-position timelist (apply #'min timelist)))
-    (seq-position timelist (apply #'min timelist))))
 
-
-(defun logview-timesync--next-timematch-entry ()
+(defun logview-timesync--next-timematch-entry (timestamp-in)
 
   "
 Iteration starts at the entry around POSITION (or the next, if
@@ -764,37 +750,13 @@ Iteration starts at the entry around POSITION (or the next, if
     (logview--std-temporarily-widening
       (logview--iterate-entries-forward (point)
                                         (lambda (entry entry-beginning)
-;;                                           ;; Collect the element to a list
-;;                                           (message "Entry: %s" entry)
-                                          (message "Entry timestamp: %s" (logview--entry-timestamp entry entry-beginning))
-;;                                           (message "Foobar")
-                                          (message "Diff: %s" (abs (- timestamp (logview--entry-timestamp entry entry-beginning))))
                                           (if (= (abs (- timestamp (logview--entry-timestamp entry entry-beginning))) 0)
                                               (progn (setq goto-line index)
                                                      (message "Yay")
                                                      nil)
-                                            (progn (setq index (+ index 1))
-                                                   (message "Noo")
-                                                   t)))
-                                        nil nil t))
-    (message "goto-line: %d" goto-line)
+                                            (setq index (+ index 1))))
+                                        nil nil nil))
     goto-line))
-
-(defun logview-timesync-traverse-entries-forward ()
-  "Traverse all log entries forward from the current
-entry (skipping the current) and return a list of the entries"
-  (interactive)
-  (message "logview-timesync-traverse-entries-forward")
-  (logview--assert 'timestamp)
-  (let ((timelist (list)))
-       (logview--std-temporarily-widening
-         (logview--iterate-entries-forward (point)
-                                           (lambda (entry entry-beginning)
-                                             ;; Collect the element to a list
-                                             (add-to-list 'timelist entry t))
-                                           nil nil t))
-       (message "Timelist: %s" timelist)
-       timelist))
 
 ;; TODO - A list of buffers to be synced on time
 ;; (defvar logview--timesync-buffers nil "docstring")
