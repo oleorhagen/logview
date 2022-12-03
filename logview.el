@@ -650,6 +650,9 @@ this face is used."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;; TODO - To create a minor mode for this or not (?)
+;; TODO - Create the time-sync functionality
+;;
 ;; Order of work
 ;;
 ;; 1. Set the current entry name upon navigation
@@ -657,10 +660,6 @@ this face is used."
 ;; 3.
 ;;
 
-;; INPROGRESS - Any movement needs to set this value
-;; TODO - rename to logview-timesync--
-(defvar logview--current-log-time nil
-  "Value of logview-current-log-time is set per buffer, and used to sync the times with one master window in every window.")
 
 (defun logview-timesync--move-entry-forward (&optional n)
   "Wraps logview-next-entry and calls sync buffers afterwards"
