@@ -650,8 +650,26 @@ this face is used."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; TODO - To create a minor mode for this or not (?)
 ;; TODO - Create the time-sync functionality
+
+
+;; How to handle the timelist traversal ?
+;;
+;; 1. Start with a new naive implementation
+;;
+;; 2. Then do a proper search in the buffer (binary partitioning ?)
+
+
+(define-minor-mode logview-timesync-mode
+  "Syncs the point in all visible logview buffers based on the time in the current buffer"
+
+  :lighter " [Sync]"
+  :keymap (let ((map (make-sparse-keymap)))
+            (define-key map (kbd "n") 'logview-timesync--move-entry-forward)
+            (define-key map (kbd "p") 'logview-timesync--move-entry-backward)
+            map)
+  :global t)
+
 ;;
 ;; Order of work
 ;;
@@ -689,7 +707,6 @@ this face is used."
   ;; Require timestamps for this operation (TODO - Do for all windows synced)
   (logview--assert 'timestamp)
   ;; Iterate over all the buffers and set the time to the given time
-  (message "Current log time: %s" logview--current-log-time)
   (let ((current-buffer-name (buffer-name (current-buffer)))
         (current-buffer-time (logview--locate-current-entry entry start
                                (logview--entry-timestamp entry start))))
@@ -1345,8 +1362,6 @@ the function will have significantly different effect."
                    (message "Setting the timestamp...")
                    (message "entry: %s, start: %s" entry start)
                    ;; (logview-timesync--sync-buffers)
-                   (when logview--current-log-time
-                     (message "Yay -- Set the current log time!"))
                   ))
                ))))
 
@@ -1825,9 +1840,9 @@ It is only for interactive use.  Non-interactively, use
 `logview-switch-to-view' instead."
   (interactive)
   (let* ((char  (if (integerp last-command-event)
-		    last-command-event
-		  (get last-command-event 'ascii-character)))
-	 (index (- (logand char #x7f) ?0)))
+        last-command-event
+      (get last-command-event 'ascii-character)))
+   (index (- (logand char #x7f) ?0)))
     (unless (<= 0 index 9)
       (user-error "This command must invoked by a numeric key, possibly with modifiers"))
     (logview-switch-to-view index)))
@@ -1912,7 +1927,7 @@ minibuffer."
                                          nil)
                                         (t
                                          (message "Please enter a number")
-	                                 (sit-for 1)
+                                   (sit-for 1)
                                          t))))
                          index))))
   (let ((view (logview--current-view)))
