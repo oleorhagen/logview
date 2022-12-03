@@ -712,7 +712,6 @@ this face is used."
                         (with-selected-window window
                           ;; INPROGRESS - Get the time from the current window
                           ;; TODO - Go to the selected point in window
-                          ;; TODO - It stops scrolling when one window reaches the bottom
                           (logview-next-entry direction)
                           ;; (logview-timesync-matching-entry-time 0)
                           ;; Blink the line
