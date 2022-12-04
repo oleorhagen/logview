@@ -742,24 +742,39 @@ Iteration starts at the entry around POSITION (or the next, if
 "
   (interactive)
   ;; TODO - Really should do this smarter
+  (message "timesync-next-entry")
   (if (= 1 direction)
       (fset 'timesync-iterator #'logview--iterate-entries-forward)
     (fset 'timesync-iterator #'logview--iterate-entries-backward))
   (let ((index 0)
-        (goto-line 0))
+        (goto-line 0)
+        (previous-delta 100000))
+
+    (defun closest-in-time-heuristic (entry entry-beginning)
+      (message "Running the heuristic..")
+      (let* ((entry-timestamp (logview--entry-timestamp entry entry-beginning))
+             (new-delta (abs (- timestamp-in entry-timestamp))))
+        (message "New-delta: %d" new-delta)
+        (message "previous-delta: %d" previous-delta)
+        (if (< new-delta previous-delta)
+            (progn (setq previous-delta new-delta)
+                   (setq goto-line index)
+                   (setq index (+ index 1)))
+          ;; Delta started increasing - break out
+          nil)))
+
+    (defun list-iterator (entry entry-beginning)
+        (if (= (abs (- timestamp-in (logview--entry-timestamp entry entry-beginning))) 0)
+            (progn (setq goto-line index)
+                   (message "Yay")
+                   nil)
+          (setq index (+ index 1))))
+
     (logview--std-temporarily-widening
       (timesync-iterator (point)
-                                        (lambda (entry entry-beginning)
-                                          (if (= (abs (- timestamp-in (logview--entry-timestamp entry entry-beginning))) 0)
-                                              (progn (setq goto-line index)
-                                                     (message "Yay")
-                                                     nil)
-                                            (setq index (+ index 1))))
-                                        nil nil nil))
+                         #'closest-in-time-heuristic
+                         nil nil nil))
     goto-line))
-
-;; TODO - A list of buffers to be synced on time
-;; (defvar logview--timesync-buffers nil "docstring")
 
 ;;
 ;;
