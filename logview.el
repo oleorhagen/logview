@@ -683,22 +683,17 @@ this face is used."
   "Wraps logview-next-entry and calls sync buffers afterwards"
   (interactive)
   (logview-next-entry n)
-  (logview-timesync--sync-buffers))
+  (logview-timesync--sync-buffers 1))
 
 
 (defun logview-timesync--move-entry-backward (&optional n)
   "Wraps logview-next-entry and calls sync buffers afterwards"
   (interactive)
   (logview-previous-entry n)
-  (logview-timesync--sync-buffers-reverse))
-
-(defun logview-timesync--sync-buffers-reverse ()
-  (interactive)
   (logview-timesync--sync-buffers -1))
 
 (defun logview-timesync--sync-buffers (&optional direction)
   (interactive)
-  ;; Require timestamps for this operation (TODO - Do for all windows synced)
   (logview--assert 'timestamp)
   ;; Iterate over all the buffers and set the time to the given time
   (let ((current-buffer-name (buffer-name (current-buffer)))
@@ -712,11 +707,10 @@ this face is used."
 
                         (message "Moving one line down in window:%s " window)
                         (with-selected-window window
-                          ;; INPROGRESS - Get the time from the current window
-                          ;; TODO - Go to the selected point in window
-                          (message "Goto-line: %d" (logview-timesync--next-timematch-entry current-buffer-time))
-                          (logview-next-entry (* 1 (logview-timesync--next-timematch-entry current-buffer-time)))
-                          ;; (logview-timesync-matching-entry-time 0)
+                          ;; TODO - The initial move is not stable as the direction is not necessarily known
+                          ;; TODO - Need a heuristic for moving time, not just diff = 0
+                          (message "Goto-line: %d" (logview-timesync--next-timematch-entry-test current-buffer-time 1))
+                          (logview-next-entry (* direction (logview-timesync--next-timematch-entry-test current-buffer-time direction)))
                           ;; Blink the line
                           (logview--maybe-pulse-current-entry)
                           )
@@ -734,7 +728,11 @@ this face is used."
     (logview-next-entry n-entries-forward)))
 
 
-(defun logview-timesync--next-timematch-entry (timestamp-in)
+(defun logview-timesync--next-timematch-entry-test (target-timestamp direction)
+  (logview-timesync--next-timematch-entry target-timestamp direction))
+
+
+(defun logview-timesync--next-timematch-entry (timestamp-in direction)
   "
 Iteration starts at the entry around POSITION (or the next, if
                                                     SKIP-CURRENT is non-nil) and continues forward until CALLBACK
@@ -743,12 +741,13 @@ Iteration starts at the entry around POSITION (or the next, if
                                                     VALIDATOR altering it.
 "
   (interactive)
-  (let ((timestamp (logview--locate-current-entry entry start
-                     (logview--entry-timestamp entry start)))
-        (index 0)
+  (if (= 1 direction)
+      (fset 'timesync-iterator #'logview--iterate-entries-forward)
+    (fset 'timesync-iterator #'logview--iterate-entries-backward))
+  (let ((index 0)
         (goto-line 0))
     (logview--std-temporarily-widening
-      (logview--iterate-entries-forward (point)
+      (timesync-iterator (point)
                                         (lambda (entry entry-beginning)
                                           (if (= (abs (- timestamp-in (logview--entry-timestamp entry entry-beginning))) 0)
                                               (progn (setq goto-line index)
