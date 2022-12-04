@@ -708,9 +708,8 @@ this face is used."
                         (message "Moving one line down in window:%s " window)
                         (with-selected-window window
                           ;; TODO - The initial move is not stable as the direction is not necessarily known
-                          ;; TODO - Need a heuristic for moving time, not just diff = 0
-                          (message "Goto-line: %d" (logview-timesync--next-timematch-entry-test current-buffer-time 1))
-                          (logview-next-entry (* direction (logview-timesync--next-timematch-entry-test current-buffer-time direction)))
+                          (message "Goto-line: %d" (logview-timesync--next-timematch-entry current-buffer-time 1))
+                          (logview-next-entry (* direction (logview-timesync--next-timematch-entry current-buffer-time direction)))
                           ;; Blink the line
                           (logview--maybe-pulse-current-entry)
                           )
@@ -718,19 +717,6 @@ this face is used."
 
 (defun logview-timesync--is-logview-window-p (window)
   (string-match ".*\\.log\\(<.*>\\)?" (buffer-name (window-buffer window))))
-
-(defun logview-timesync-matching-entry-time (time)
-  "Move to the given entry time in the buffer"
-  (interactive)
-  (message "logview-timesync-matching-entry-time")
-  (let ((n-entries-forward 1))
-    ;; Move to the given entry
-    (logview-next-entry n-entries-forward)))
-
-
-(defun logview-timesync--next-timematch-entry-test (target-timestamp direction)
-  (logview-timesync--next-timematch-entry target-timestamp direction))
-
 
 (defun logview-timesync--next-timematch-entry (timestamp-in direction)
   "
@@ -742,7 +728,6 @@ Iteration starts at the entry around POSITION (or the next, if
 "
   (interactive)
   ;; TODO - Really should do this smarter
-  (message "timesync-next-entry")
   (if (= 1 direction)
       (fset 'timesync-iterator #'logview--iterate-entries-forward)
     (fset 'timesync-iterator #'logview--iterate-entries-backward))
@@ -751,24 +736,14 @@ Iteration starts at the entry around POSITION (or the next, if
         (previous-delta 100000))
 
     (defun closest-in-time-heuristic (entry entry-beginning)
-      (message "Running the heuristic..")
       (let* ((entry-timestamp (logview--entry-timestamp entry entry-beginning))
              (new-delta (abs (- timestamp-in entry-timestamp))))
-        (message "New-delta: %d" new-delta)
-        (message "previous-delta: %d" previous-delta)
         (if (< new-delta previous-delta)
             (progn (setq previous-delta new-delta)
                    (setq goto-line index)
                    (setq index (+ index 1)))
           ;; Delta started increasing - break out
           nil)))
-
-    (defun list-iterator (entry entry-beginning)
-        (if (= (abs (- timestamp-in (logview--entry-timestamp entry entry-beginning))) 0)
-            (progn (setq goto-line index)
-                   (message "Yay")
-                   nil)
-          (setq index (+ index 1))))
 
     (logview--std-temporarily-widening
       (timesync-iterator (point)
