@@ -715,7 +715,7 @@ this face is used."
                           ;; INPROGRESS - Get the time from the current window
                           ;; TODO - Go to the selected point in window
                           (message "Goto-line: %d" (logview-timesync--next-timematch-entry current-buffer-time))
-                          (logview-next-entry direction)
+                          (logview-next-entry (* 1 (logview-timesync--next-timematch-entry current-buffer-time)))
                           ;; (logview-timesync-matching-entry-time 0)
                           ;; Blink the line
                           (logview--maybe-pulse-current-entry)
@@ -751,7 +751,6 @@ Iteration starts at the entry around POSITION (or the next, if
       (logview--iterate-entries-forward (point)
                                         (lambda (entry entry-beginning)
                                           (if (= (abs (- timestamp-in (logview--entry-timestamp entry entry-beginning))) 0)
-                                              (message "Iterating entry: %s" entry)
                                               (progn (setq goto-line index)
                                                      (message "Yay")
                                                      nil)
