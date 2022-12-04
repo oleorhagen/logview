@@ -714,6 +714,7 @@ this face is used."
                         (with-selected-window window
                           ;; INPROGRESS - Get the time from the current window
                           ;; TODO - Go to the selected point in window
+                          (message "Goto-line: %d" (logview-timesync--next-timematch-entry current-buffer-time))
                           (logview-next-entry direction)
                           ;; (logview-timesync-matching-entry-time 0)
                           ;; Blink the line
@@ -734,7 +735,6 @@ this face is used."
 
 
 (defun logview-timesync--next-timematch-entry (timestamp-in)
-
   "
 Iteration starts at the entry around POSITION (or the next, if
                                                     SKIP-CURRENT is non-nil) and continues forward until CALLBACK
@@ -750,7 +750,8 @@ Iteration starts at the entry around POSITION (or the next, if
     (logview--std-temporarily-widening
       (logview--iterate-entries-forward (point)
                                         (lambda (entry entry-beginning)
-                                          (if (= (abs (- timestamp (logview--entry-timestamp entry entry-beginning))) 0)
+                                          (if (= (abs (- timestamp-in (logview--entry-timestamp entry entry-beginning))) 0)
+                                              (message "Iterating entry: %s" entry)
                                               (progn (setq goto-line index)
                                                      (message "Yay")
                                                      nil)
