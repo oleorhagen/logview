@@ -668,7 +668,7 @@ this face is used."
             (define-key map (kbd "n") 'logview-timesync--move-entry-forward)
             (define-key map (kbd "p") 'logview-timesync--move-entry-backward)
             map)
-  :global t)
+  :global nil)
 
 ;;
 ;; Order of work
@@ -741,6 +741,7 @@ Iteration starts at the entry around POSITION (or the next, if
                                                     VALIDATOR altering it.
 "
   (interactive)
+  ;; TODO - Really should do this smarter
   (if (= 1 direction)
       (fset 'timesync-iterator #'logview--iterate-entries-forward)
     (fset 'timesync-iterator #'logview--iterate-entries-backward))
